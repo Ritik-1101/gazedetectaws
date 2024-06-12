@@ -44,6 +44,7 @@ def detect_gaze(landmarks, frame, gray):
         return "Focused"
     else:
         return "Not Focused"
+
 @main.route('/')
 def index():
     return render_template('index.html')
@@ -69,10 +70,10 @@ def gen_frames():
                 gaze = detect_gaze(landmarks, frame, gray)
                 cv2.putText(frame, gaze, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-               ret, buffer = cv2.imencode('.jpg', frame)
-               frame = buffer.tobytes()
-               yield (b'--frame\r\n'
-                      b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @main.route('/video_feed')
 def video_feed():
