@@ -5,7 +5,7 @@ import numpy as np
 
 main = Blueprint('main', __name__)
 
-predictor_path = 'D:/Visual Studio Code Files/AIDI Sem-2/AIDI-2004 - AI IN ENTERPRISE SYSTEMS/Bouns Lab/shape_predictor_68_face_landmarks.dat'
+predictor_path = 'shape_predictor_68_face_landmarks.dat'
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(predictor_path)
 
