@@ -6,6 +6,8 @@ print("Python path:", sys.path)
 
 from app import create_app
 
+print("Import succeeded")
+
 app = create_app()
 
 print("App instance created")

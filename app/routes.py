@@ -8,13 +8,42 @@ main = Blueprint('main', __name__)
 
 # Use an absolute path for the predictor file
 predictor_path = os.path.join(os.path.dirname(__file__), '..', 'shape_predictor_68_face_landmarks.dat')
+print(f"Using predictor path: {predictor_path}")
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(predictor_path)
 
 def detect_gaze(landmarks, frame, gray):
-    # [remaining code unchanged]
-    pass
+    left_eye_region = np.array([(landmarks.part(36).x, landmarks.part(36).y),
+                                (landmarks.part(37).x, landmarks.part(37).y),
+                                (landmarks.part(38).x, landmarks.part(38).y),
+                                (landmarks.part(39).x, landmarks.part(39).y),
+                                (landmarks.part(40).x, landmarks.part(40).y),
+                                (landmarks.part(41).x, landmarks.part(41).y)], np.int32)
+    right_eye_region = np.array([(landmarks.part(42).x, landmarks.part(42).y),
+                                 (landmarks.part(43).x, landmarks.part(43).y),
+                                 (landmarks.part(44).x, landmarks.part(44).y),
+                                 (landmarks.part(45).x, landmarks.part(45).y),
+                                 (landmarks.part(46).x, landmarks.part(46).y),
+                                 (landmarks.part(47).x, landmarks.part(47).y)], np.int32)
 
+    height, width, _ = frame.shape
+    mask = np.zeros((height, width), np.uint8)
+
+    cv2.polylines(mask, [left_eye_region], True, 255, 2)
+    cv2.fillPoly(mask, [left_eye_region], 255)
+    left_eye = cv2.bitwise_and(gray, gray, mask=mask)
+
+    cv2.polylines(mask, [right_eye_region], True, 255, 2)
+    cv2.fillPoly(mask, [right_eye_region], 255)
+    right_eye = cv2.bitwise_and(gray, gray, mask=mask)
+
+    left_eye_center = (landmarks.part(36).x + landmarks.part(39).x) // 2, (landmarks.part(36).y + landmarks.part(39).y) // 2
+    right_eye_center = (landmarks.part(42).x + landmarks.part(45).x) // 2, (landmarks.part(42).y + landmarks.part(45).y) // 2
+
+    if left_eye_center[0] < width // 2:
+        return "Focused"
+    else:
+        return "Not Focused"
 @main.route('/')
 def index():
     return render_template('index.html')
@@ -40,10 +69,10 @@ def gen_frames():
                 gaze = detect_gaze(landmarks, frame, gray)
                 cv2.putText(frame, gaze, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+               ret, buffer = cv2.imencode('.jpg', frame)
+               frame = buffer.tobytes()
+               yield (b'--frame\r\n'
+                      b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @main.route('/video_feed')
 def video_feed():
